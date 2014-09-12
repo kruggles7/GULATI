@@ -1,11 +1,11 @@
-function [anova_sat, anova_chain, anova_combo, plot_combo, combo_text] = sat_length( mat, lipids, species, label, T )
+function [anova_sat, anova_chain, anova_combo, plot_combo, combo_text] = sat_length_gams( mat, lipids, species, label, T )
 %UNTITLED Summary of this function goes here
 % %   Detailed explanation goes here
 % 
-% mat=DD2f_p_; 
-% lipids=DD2f_names; 
-% label='parasite'; 
-% T=6; 
+% mat=both; 
+% lipids=gam_text; 
+% label='gams'; 
+% T=2; 
 
 [r,c]=size(lipids); 
 group={'PL', 'SL', 'NL', 'DAG'}; 
@@ -20,6 +20,7 @@ cd ..
 cd results
 mkdir saturation
 cd saturation
+
 for i=1:4
     indx=find(match_==i); 
     L=species(indx,2); 
@@ -67,7 +68,7 @@ for i=1:4
                         rL=Q-1; 
                     elseif numel(P)>0
                         %q1=q(2)-1;
-                        rL=P-1; 
+                        rL=P(1)-1; 
                     else 
                         rL=length(text_);
                     end 
@@ -139,6 +140,7 @@ for i=1:4
             end 
         end
     end 
+
     %make an average with time for each member of the group
     [r1,c1]=size(levels); 
     levels_sum=sum(levels); 
@@ -152,8 +154,8 @@ for i=1:4
         for k2=1:r1
             d=1; 
             for j=1:T 
-                time_mat(k2,j)=mean(levels(k2,d:d+8)); 
-                d=d+9; 
+                time_mat(k2,j)=mean(levels(k2,d:d+26)); 
+                d=d+27;  
             end
         end
         sum_=sum(time_mat);
@@ -186,9 +188,9 @@ for i=1:4
             end  
             d=1; 
             for j2=1:T 
-                temp=stat_sat(d:d+8); 
+                temp=stat_sat(d:d+26); 
                 stat_mat(:,j2)=temp; 
-                d=d+9; 
+                d=d+27; 
             end
             p_sat=anova1(stat_mat); 
             close all
@@ -243,9 +245,9 @@ for i=1:4
             end  
             d=1; 
             for j2=1:T 
-                temp=stat_chain(d:d+8); 
+                temp=stat_chain(d:d+26); 
                 stat_mat(:,j2)=temp; 
-                d=d+9; 
+                d=d+27; 
             end
             p_chain=anova1(stat_mat); 
             close all
@@ -315,10 +317,10 @@ for i=1:4
                         stat_combo=sum(stat_combo); 
                     end  
                     d=1; 
-                    for j2=1:T 
-                        temp=stat_combo(d:d+8); 
-                        stat_mat(:,j2)=temp; 
-                        d=d+9; 
+                    for j3=1:T 
+                        temp=stat_combo(d:d+26); 
+                        stat_mat(:,j3)=temp; 
+                        d=d+27; 
                     end
                     p_chain=anova1(stat_mat); 
                     close all
@@ -352,7 +354,7 @@ for i=1:4
         [r3,c3]=size(plot_combo); 
         plot_combo=rot90(plot_combo); 
         plot_combo=flipud(plot_combo); 
-        name=group{i}; 
+        NAME=group{i}; 
         bar (1:c3, plot_combo, 'stack');
         hold on 
         combo_text=cell.empty; 
@@ -364,12 +366,12 @@ for i=1:4
         end 
         legend(combo_text, 'Location', 'EastOutside');    
         ylim([0 100]); 
-        ylabel(['% of ' name ' with length:saturation']);    
+        ylabel(['% of ' NAME ' with length:saturation']);    
         if T==6
             set(gca, 'XTickLabel', {'8', '16', '24', '32', '40', '48'}); 
         end 
-        print (gcf, '-dpng', [label '_' name '_combo.png']); 
-        print (gcf, '-depsc2', [label '_' name '_combo.eps']);
+        print (gcf, '-dpng', [label '_' NAME '_combo.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_combo.eps']);
         close 
 
         [r3,c3]=size(plot_length); 
@@ -386,12 +388,12 @@ for i=1:4
         legend (length_plot, 'Location', 'EastOutside');  
         hold off 
         ylim([0 100]); 
-        ylabel(['% of ' name ' with chain length']); 
+        ylabel(['% of ' NAME ' with chain length']); 
         if T==6
             set(gca, 'XTickLabel', {'8', '16', '24', '32', '40', '48'}); 
         end 
-        print (gcf, '-dpng', [label '_' name '_length.png']); 
-        print (gcf, '-depsc2', [label '_' name '_length.eps']);
+        print (gcf, '-dpng', [label '_' NAME '_length.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_length.eps']);
         close 
 
         [r3,c3]=size(plot_sat); 
@@ -402,10 +404,10 @@ for i=1:4
         length_sat=cell.empty;
         legend (length_sat, 'Location', 'EastOutside'); 
         ylim([0 100]); 
-        ylabel(['% of ' name ' with saturation level']); 
+        ylabel(['% of ' NAME ' with saturation level']); 
         set(gca, 'XTickLabel', {'8', '16', '24', '32', '40', '48'}); 
-        print (gcf, '-dpng', [label '_' name '_saturation.png']); 
-        print (gcf, '-depsc2', [label '_' name '_saturation.eps']);
+        print (gcf, '-dpng', [label '_' NAME '_saturation.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_saturation.eps']);
         close 
     else %% if its the control---------------------------------------
         for k2=1:r1
@@ -487,7 +489,7 @@ for i=1:4
        [r3,c3]=size(plot_combo);
         plot_combo=rot90(plot_combo); 
         plot_combo=flipud(plot_combo); 
-        name=group{i}; 
+        NAME=group{i}; 
         bar (1:2:c3*2, plot_combo, 'stack');
         hold on 
         combo_text=cell.empty; 
@@ -500,10 +502,10 @@ for i=1:4
         legend(combo_text, 'Location', 'EastOutside');    
         ylim([0 100]); 
         xlim([0 2]); 
-        ylabel(['% of ' name ' with length:saturation']);    
+        ylabel(['% of ' NAME ' with length:saturation']);    
         set(gca, 'XTickLabel', {'Control', '16', '24', '32', '40', '48'}); 
-        print (gcf, '-dpng', [label '_' name '_combo.png']); 
-        print (gcf, '-depsc2', [label '_' name '_combo.eps']);
+        print (gcf, '-dpng', [label '_' NAME '_combo.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_combo.eps']);
         close 
 
         subplot(1,3,1); 
@@ -521,11 +523,11 @@ for i=1:4
         legend (length_plot, 'Location', 'EastOutside');  
         hold off 
         ylim([0 100]); 
-        ylabel(['% of ' name ' with chain length']); 
+        ylabel(['% of ' NAME ' with chain length']); 
         set(gca, 'XTickLabel', {'Control', '16', '24', '32', '40', '48'}); 
         xlim([0 2]);  
-        print (gcf, '-dpng', [label '_' name '_length.png']); 
-        print (gcf, '-depsc2', [label '_' name '_length.eps']);
+        print (gcf, '-dpng', [label '_' NAME '_length.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_length.eps']);
         close 
 
         subplot(1,3,1); 
@@ -541,10 +543,10 @@ for i=1:4
         legend (length_sat, 'Location', 'EastOutside'); 
         ylim([0 100]); 
         xlim([0 2]); 
-        ylabel(['% of ' name ' with saturation level']); 
+        ylabel(['% of ' NAME ' with saturation level']); 
         set(gca, 'XTickLabel', {'Control', '16', '24', '32', '40', '48'}); 
-        print (gcf, '-dpng', [label '_' name '_saturation.png']); 
-        print (gcf, '-depsc2', [label '_' name '_saturation.eps']);
+        print (gcf, '-dpng', [label '_' NAME '_saturation.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_saturation.eps']);
         close 
     end
 end 

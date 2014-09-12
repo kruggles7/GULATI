@@ -1,15 +1,13 @@
-function [mol_parasite, mol_rbc, mol_uninfected, plot_mat, mol_names, mol_parasite_all, mol_rbc_all, mol_uninf_all ] = Figure1_v2( parasite, rbc, uninfected, names, species )
+function [mol_parasite, mol_uninfected, plot_mat, mol_names ] = Figure1_noinfected( parasite, uninfected, names, species )
+
+% parasite=DD2f_p_; 
+% uninfected=uninf; 
+% names= DD2f_names;
+
 cd ..
 cd results
-mkdir ('bar_charts')
-cd bar_charts
-
-[r,c]=size(parasite); 
-mol_parasite_all=zeros(r,c); 
-[r,c]=size(rbc); 
-mol_rbc_all=zeros(r,c); 
-[r,c]=size(uninfected); 
-mol_uninf_all=zeros(r,c); 
+mkdir ('bar_charts_noinfected')
+cd bar_charts_noinfected
 
 groups=cell2mat(names(:,2)); 
 unique_=unique(groups); 
@@ -27,29 +25,10 @@ for k=1:length(unique_);
     mat_species=sum(mat_); 
     for j=1:c
         mol_parasite(k,j)=mat_species(1,j)/sum_mat(1,j); 
-        for i=1:numel(indx)
-            mol_parasite_all(indx(i),j)=mat(indx(i),j)/sum_mat(1,j); 
-        end 
     end 
 end
 
-[r,c]=size(rbc);  
-mat=rbc; 
-mol_rbc=zeros(L_,c); 
-sum_mat=sum(rbc); 
 
-%find the mol%time for each lipid group
-for k=1:length(unique_);
-    indx=find(groups==unique_(k)); 
-    mat_=mat(indx,:); 
-    mat_species=sum(mat_); 
-    for j=1:c
-        mol_rbc(k,j)=mat_species(1,j)/sum_mat(1,j); 
-        for i=1:numel(indx)
-            mol_rbc_all(indx(i),j)=mat(indx(i),j)/sum_mat(1,j); 
-        end 
-    end 
-end
 
 [r,c]=size(uninfected);  
 mat=uninfected; 
@@ -63,15 +42,11 @@ for k=1:length(unique_);
     mat_species=sum(mat_); 
     for j=1:c
         mol_uninfected(k,j)=mat_species(1,j)/sum_mat(1,j); 
-        for i=1:numel(indx)
-            mol_uninf_all(indx(i),j)=mat(indx(i),j)/sum_mat(1,j); 
-        end 
     end 
 end
-
-plot_mat=zeros(L_,18); 
+plot_mat=zeros(L_,6); 
 control_mat=zeros(L_,1); 
-plot_std=NaN(L_,18); 
+plot_std=NaN(L_,6); 
 control_std=NaN(L_,1); 
 mol_names=cell(length(unique_),1); 
 for k=1:length(unique_); 
@@ -83,23 +58,23 @@ for k=1:length(unique_);
     std_dev=std(mol_uninfected(k,:)); 
     control_std(k,1)=(std_dev/sqrt(3))*100; 
     for j=1:6
-        plot_mat(k,c)=mean(mol_rbc(k,d:d+8))*100; 
-        std_dev=std(mol_rbc(k,d:d+8)); 
-        plot_std(k,c)=(std_dev/sqrt(9))*100; 
-        c=c+1;
         plot_mat(k,c)=mean(mol_parasite(k,d:d+8))*100; 
         std_dev=std(mol_parasite(k,d:d+8)); 
         plot_std(k,c)=(std_dev/sqrt(9))*100; 
-        c=c+2; 
+        c=c+1; 
         d=d+9; 
     end
-    colors=[0 0 0; 0.5 0.5 0.5; 1 1 1]; 
-    bar_color=[2 1 3 2 1 3 2 1 3 2 1 3 2 1 3 2 1 3]; 
-    y=[1:18]; 
+    grey=[0.5 0.5 0.5]; 
+    %colors=[0 0 0; 0.5 0.5 0.5; 1 1 1]; 
+    %bar_color=[2 1 3 2 1 3 2 1 3 2 1 3 2 1 3 2 1 3]; 
+    
+    y=1:2:12; 
+    
     for t=1:numel(y)
-        bar( y(t), plot_mat(k,t),1,'facecolor',colors(bar_color(t),:)); %rbc=gray, parasite=black
+        bar( y(t), plot_mat(k,t),1,'facecolor','k'); 
         hold on 
-        h(t)=errorbar (y(t),plot_mat(k,t),plot_std(k,t)); 
+        h=errorbar (y(t),plot_mat(k,t),plot_std(k,t)); %,'.k', 'MarkerSize',2, 'linewidth',2 ); 
+        set(h(1),'color','k'); 
     end 
 
     % Perform the correction 
@@ -136,10 +111,10 @@ for k=1:length(unique_);
     plot(x_control, y_control_down, 'r--', 'linewidth', 2); 
     
     hold off 
-    x_label= {[],'8',[],[],'16',[],[],'24',[],[],'32',[],[],'40',[],[],'48',[]}; 
-    set(gca, 'XTick', [1:18]); 
+    x_label= {'8','16','24','32','40','48'}; 
+    set(gca, 'XTick',1:2:12); 
     set (gca, 'XTickLabel',x_label); 
-    xlim([0 19]); 
+    xlim([0 12]); 
     set(gca,'FontSize',18, 'linewidth',2);
     %NumTicks = 4;
     %L = get(gca,'YLim');

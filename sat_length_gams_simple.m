@@ -1,14 +1,17 @@
-function [anova_sat, anova_chain, anova_combo, plot_combo, combo_text] = sat_length( mat, lipids, species, label, T )
+%function [anova_sat, anova_chain, anova_combo, plot_combo, combo_text] = sat_length_gams_simplev2( mat, lipids, species, label, T )
 %UNTITLED Summary of this function goes here
 % %   Detailed explanation goes here
 % 
-% mat=DD2f_p_; 
-% lipids=DD2f_names; 
-% label='parasite'; 
-% T=6; 
+mat=all; 
+lipids=gam_text; 
+label='gams'; 
+T=3; 
+[r,c]=size(mat);  
+stat_yes=0; 
+
 
 [r,c]=size(lipids); 
-group={'PL', 'SL', 'NL', 'DAG'}; 
+group={'PL', 'SL', 'NL', 'DAG', 'APG'}; 
 match_=cell2mat(species(:,3)); 
 anova_sat=cell.empty;
 anova_chain=cell.empty; 
@@ -20,7 +23,8 @@ cd ..
 cd results
 mkdir saturation
 cd saturation
-for i=1:4
+
+for i=1:5
     indx=find(match_==i); 
     L=species(indx,2); 
     saturation=double.empty; 
@@ -29,7 +33,9 @@ for i=1:4
     time_mat=double.empty; 
     col_label=double.empty; 
     levels=double.empty; 
+    control_levels=double.empty; 
     n_=1; 
+    NAME=group{i}; 
     for k=1:length(L)
         lipid=L{k}; %the name of the lipid we are including
         [r,c]=size(lipids); 
@@ -67,7 +73,7 @@ for i=1:4
                         rL=Q-1; 
                     elseif numel(P)>0
                         %q1=q(2)-1;
-                        rL=P-1; 
+                        rL=P(1)-1; 
                     else 
                         rL=length(text_);
                     end 
@@ -139,9 +145,11 @@ for i=1:4
             end 
         end
     end 
+
+        
     %make an average with time for each member of the group
     [r1,c1]=size(levels); 
-    levels_sum=sum(levels); 
+    levels_sum=nansum(levels); 
     levels_percent=zeros(r1,c1); 
     for k2=1:r1
         for j2=1:c1
@@ -152,11 +160,11 @@ for i=1:4
         for k2=1:r1
             d=1; 
             for j=1:T 
-                time_mat(k2,j)=mean(levels(k2,d:d+8)); 
-                d=d+9; 
+                time_mat(k2,j)=nanmean(levels(k2,d:d+26)); 
+                d=d+27;  
             end
         end
-        sum_=sum(time_mat);
+        sum_=nansum(time_mat);
         unique_sat=unique(saturation); 
         plot_sat=zeros(length(unique_sat),T); 
         text_sat=double.empty; 
@@ -170,7 +178,7 @@ for i=1:4
             lipid_new=time_mat(indx,:);
             [rl,cl]=size(lipid_new); 
             if rl>1
-                lipid_sum=sum(lipid_new); 
+                lipid_sum=nansum(lipid_new); 
             else 
                 lipid_sum=lipid_new; 
             end 
@@ -182,17 +190,21 @@ for i=1:4
             stat_mat=double.empty; 
             [r3,c3]=size(stat_sat); 
             if r3>1
-                stat_sat=sum(stat_sat); 
+                stat_sat=nansum(stat_sat); 
             end  
             d=1; 
             for j2=1:T 
-                temp=stat_sat(d:d+8); 
+                temp=stat_sat(d:d+26); 
                 stat_mat(:,j2)=temp; 
-                d=d+9; 
+                d=d+27; 
             end
-            p_sat=anova1(stat_mat); 
-            close all
-            anova_sat{a_count,3}=p_sat; 
+            if stat_yes==1
+                p_sat=anova1(stat_mat); 
+                close all
+            else 
+                p_stat='NA'; 
+            end 
+            anova_sat{a_count,3}=p_stat; 
             temp_ttest=[]; 
             for n=1:T
                 group1=stat_mat(:,n); 
@@ -227,7 +239,7 @@ for i=1:4
             lipid_new=time_mat(indx,:);
             [rl,c1]=size(lipid_new); 
             if rl>1
-                lipid_sum=sum(lipid_new); 
+                lipid_sum=nansum(lipid_new); 
             else 
                 lipid_sum=lipid_new; 
             end 
@@ -239,16 +251,20 @@ for i=1:4
             stat_mat=double.empty; 
             [r3,c3]=size(stat_chain); 
             if r3>1
-                stat_chain=sum(stat_chain); 
+                stat_chain=nansum(stat_chain); 
             end  
             d=1; 
             for j2=1:T 
-                temp=stat_chain(d:d+8); 
+                temp=stat_chain(d:d+26); 
                 stat_mat(:,j2)=temp; 
-                d=d+9; 
+                d=d+27; 
             end
-            p_chain=anova1(stat_mat); 
-            close all
+            if stat_yes==1
+                p_chain=anova1(stat_mat); 
+                close all
+            else 
+                p_chain='NA'; 
+            end 
             anova_chain{c_count,3}=p_chain; 
             temp_ttest=[]; 
             for n=1:T
@@ -287,14 +303,14 @@ for i=1:4
                 if numel(indx)==0 
                     error=1; 
                 elseif numel(indx)>1
-                    lipid_new=sum(time_mat(indx,:));
+                    lipid_new=nansum(time_mat(indx,:));
                 else 
                     lipid_new=time_mat(indx,:); 
                 end 
                 if error==0 
                     [rl,c1]=size(lipid_new); 
                     if rl>1
-                        lipid_sum=sum(lipid_new); 
+                        lipid_sum=nansum(lipid_new); 
                     else 
                         lipid_sum=lipid_new; 
                     end 
@@ -312,16 +328,20 @@ for i=1:4
                     stat_mat=double.empty; 
                     [r3,c3]=size(stat_combo); 
                     if r3>1
-                        stat_combo=sum(stat_combo); 
+                        stat_combo=nansum(stat_combo); 
                     end  
                     d=1; 
-                    for j2=1:T 
-                        temp=stat_combo(d:d+8); 
-                        stat_mat(:,j2)=temp; 
-                        d=d+9; 
+                    for j3=1:T 
+                        temp=stat_combo(d:d+26); 
+                        stat_mat(:,j3)=temp; 
+                        d=d+27; 
                     end
-                    p_chain=anova1(stat_mat); 
-                    close all
+                    if stat_yes==1
+                        p_chain=anova1(stat_mat); 
+                        close all
+                    else 
+                        p_chain='NA';
+                    end 
                     anova_combo{co_count,4}=p_chain; 
                     temp_ttest=[]; 
                     for n=1:T
@@ -349,71 +369,108 @@ for i=1:4
                 end 
             end 
         end 
-        [r3,c3]=size(plot_combo); 
-        plot_combo=rot90(plot_combo); 
-        plot_combo=flipud(plot_combo); 
-        name=group{i}; 
-        bar (1:c3, plot_combo, 'stack');
-        hold on 
-        combo_text=cell.empty; 
-        for i3=1:r3
-            t=num2str(text_combo(i3,1)); 
-            v=num2str(text_combo(i3,2)); 
-            x=[v ':' t]; 
-            combo_text{i3}=x;  
-        end 
-        legend(combo_text, 'Location', 'EastOutside');    
-        ylim([0 100]); 
-        ylabel(['% of ' name ' with length:saturation']);    
-        if T==6
-            set(gca, 'XTickLabel', {'8', '16', '24', '32', '40', '48'}); 
-        end 
-        print (gcf, '-dpng', [label '_' name '_combo.png']); 
-        print (gcf, '-depsc2', [label '_' name '_combo.eps']);
-        close 
-
+        %plot the length levels
         [r3,c3]=size(plot_length); 
-        plot_length=rot90(plot_length); 
-        plot_length=flipud(plot_length); 
-        bar (1:c3, plot_length, 'stack'); 
-        hold on
-        length_plot=cell.empty; 
-        for i3=1:r3
-            t=text_length(i3); 
-            length_plot{i3}=num2str(t); 
+        plot_length_=zeros(3,4); 
+        for S=1:r3
+            if text_length(S)<=12
+                plot_length_(:,1)=plot_length_(:,1)+ plot_length(S,:)'; 
+            elseif text_length(S)>12 && text_length(S)<=24
+                plot_length_(:,2)=plot_length_(:,2)+ plot_length(S,:)'; 
+            elseif text_length(S)<42
+                 plot_length_(:,3)=plot_length_(:,3)+ plot_length(S,:)'; 
+            else 
+                plot_length_(:,4)=plot_length_(:,4)+plot_length(S,:)'; 
+            end 
         end 
-
-        legend (length_plot, 'Location', 'EastOutside');  
-        hold off 
+        f1=subplot(3,1,1);
+        bar(1:4, plot_length_(1,:)); 
+        set(gca, 'XTickLabel', ''); 
         ylim([0 100]); 
-        ylabel(['% of ' name ' with chain length']); 
-        if T==6
-            set(gca, 'XTickLabel', {'8', '16', '24', '32', '40', '48'}); 
-        end 
-        print (gcf, '-dpng', [label '_' name '_length.png']); 
-        print (gcf, '-depsc2', [label '_' name '_length.eps']);
+        ylabel('Control'); 
+        
+        title(['% of ' NAME ' with chain length']); 
+        f2=subplot(3,1,2);
+        bar(1:4,plot_length_(2,:)); 
+        set(gca, 'XTickLabel', ''); 
+        ylim([0 100]); 
+        ylabel('Early'); 
+        linkaxes([f1 f2],'x'); %make y axis the same
+        pos1=get(f1,'Position'); %find the current position [x,y,width,height]
+        pos2=get(f2,'Position'); %find the current position [x,y,width,height]
+        pos2(2)=pos1(2) - pos2(4); %move the second so it touches the first 
+        set (f2,'Position',pos2); 
+    
+        f3=subplot(3,1,3); 
+        bar(1:4,plot_length_(3,:)); 
+        ylim([0 100]); 
+        set(gca, 'XTickLabel', {'Short', 'Medium', 'Long', 'Very Long'}); 
+        ylabel('Late'); 
+        linkaxes([f2 f3],'x'); %make y axis the same
+        pos1=get(f2,'Position'); %find the current position [x,y,width,height]
+        pos2=get(f3,'Position'); %find the current position [x,y,width,height]
+        pos2(2)=pos1(2) - pos2(4); %move the second so it touches the first 
+        set (f3,'Position',pos2); 
+   
+        print (gcf, '-dpng', [label '_' NAME '_length_simple.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_length_simple.eps']);
         close 
+        
+        
 
+        %plot the saturation levels
         [r3,c3]=size(plot_sat); 
-        plot_sat=rot90(plot_sat); 
-        plot_sat=flipud(plot_sat); 
-        bar (1:c3, plot_sat, 'stack'); 
-        hold on
-        length_sat=cell.empty;
-        legend (length_sat, 'Location', 'EastOutside'); 
+        plot_sat_=zeros(3,3); 
+        for S=1:r3
+            if text_sat(S)==0
+                plot_sat_(:,1)=plot_sat_(:,1)+ plot_sat(S,:)'; 
+            elseif text_sat(S)==1
+                plot_sat_(:,2)=plot_sat_(:,2)+ plot_sat(S,:)'; 
+            elseif text_sat(S)>1
+                 plot_sat_(:,3)=plot_sat_(:,3)+ plot_sat(S,:)'; 
+            else 
+                text_sat(S)
+            end 
+        end 
+        f1=subplot(3,1,1);
+        bar(1:3, plot_sat_(1,:)); 
+        set(gca, 'XTickLabel', ''); 
         ylim([0 100]); 
-        ylabel(['% of ' name ' with saturation level']); 
-        set(gca, 'XTickLabel', {'8', '16', '24', '32', '40', '48'}); 
-        print (gcf, '-dpng', [label '_' name '_saturation.png']); 
-        print (gcf, '-depsc2', [label '_' name '_saturation.eps']);
+        ylabel('Late'); 
+        title(['% of ' NAME ' with saturation level']); 
+        
+        f2=subplot(3,1,2);
+        bar(1:3,plot_sat_(2,:)); 
+        set(gca, 'XTickLabel', ''); 
+        ylim([0 100]); 
+        ylabel('Early'); 
+        linkaxes([f1 f2],'x'); %make y axis the same
+        pos1=get(f1,'Position'); %find the current position [x,y,width,height]
+        pos2=get(f2,'Position'); %find the current position [x,y,width,height]
+        pos2(2)=pos1(2) - pos2(4); %move the second so it touches the first 
+        set (f2,'Position',pos2); 
+        
+        f3=subplot(3,1,3); 
+        bar(1:3,plot_sat_(3,:)); 
+        ylim([0 100]); 
+        linkaxes([f2 f3],'x'); %make y axis the same
+        pos1=get(f2,'Position'); %find the current position [x,y,width,height]
+        pos2=get(f3,'Position'); %find the current position [x,y,width,height]
+        pos2(2)=pos1(2) - pos2(4); %move the second so it touches the first 
+        set (f3,'Position',pos2); 
+        ylabel('Control'); 
+        set(gca, 'XTickLabel', {'SAT', 'MUFA', 'PUFA'}); 
+        print (gcf, '-dpng', [label '_' NAME '_saturation_simple.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_saturation_simple.eps']);
         close 
+        
     else %% if its the control---------------------------------------
         for k2=1:r1
             for j=1:6
-                time_mat(k2,j)=mean(levels(k2,1:3));
+                time_mat(k2,j)=nanmean(levels(k2,1:3));
             end 
         end 
-        sum_=sum(time_mat);
+        sum_=nansum(time_mat);
         unique_sat=unique(saturation); 
         plot_sat=zeros(length(unique_sat),T); 
         text_sat=double.empty; 
@@ -424,7 +481,7 @@ for i=1:4
             lipid_new=time_mat(indx,:);
             [rl,cl]=size(lipid_new); 
             if rl>1
-                lipid_sum=sum(lipid_new); 
+                lipid_sum=nansum(lipid_new); 
             else 
                 lipid_sum=lipid_new; 
             end 
@@ -441,7 +498,7 @@ for i=1:4
             lipid_new=time_mat(indx,:);
             [rl,c1]=size(lipid_new); 
             if rl>1
-                lipid_sum=sum(lipid_new); 
+                lipid_sum=nansum(lipid_new); 
             else 
                 lipid_sum=lipid_new; 
             end 
@@ -463,14 +520,14 @@ for i=1:4
                 if numel(indx)==0 
                     error=1; 
                 elseif numel(indx)>1
-                    lipid_new=sum(time_mat(indx,:));
+                    lipid_new=nansum(time_mat(indx,:));
                 else 
                     lipid_new=time_mat(indx,:); 
                 end 
                 if error==0 
                     [rl,c1]=size(lipid_new); 
                     if rl>1
-                        lipid_sum=sum(lipid_new); 
+                        lipid_sum=nansum(lipid_new); 
                     else 
                         lipid_sum=lipid_new; 
                     end 
@@ -487,7 +544,6 @@ for i=1:4
        [r3,c3]=size(plot_combo);
         plot_combo=rot90(plot_combo); 
         plot_combo=flipud(plot_combo); 
-        name=group{i}; 
         bar (1:2:c3*2, plot_combo, 'stack');
         hold on 
         combo_text=cell.empty; 
@@ -500,10 +556,14 @@ for i=1:4
         legend(combo_text, 'Location', 'EastOutside');    
         ylim([0 100]); 
         xlim([0 2]); 
-        ylabel(['% of ' name ' with length:saturation']);    
-        set(gca, 'XTickLabel', {'Control', '16', '24', '32', '40', '48'}); 
-        print (gcf, '-dpng', [label '_' name '_combo.png']); 
-        print (gcf, '-depsc2', [label '_' name '_combo.eps']);
+        ylabel(['% of ' NAME ' with length:saturation']);    
+        if T==6
+            set(gca, 'XTickLabel', {'Control', '16', '24', '32', '40', '48'}); 
+        elseif T==3
+            set (gca, 'XTickLabel', {'Control', 'Early', 'Late'});  
+        end 
+        print (gcf, '-dpng', [label '_' NAME '_combo.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_combo.eps']);
         close 
 
         subplot(1,3,1); 
@@ -521,11 +581,15 @@ for i=1:4
         legend (length_plot, 'Location', 'EastOutside');  
         hold off 
         ylim([0 100]); 
-        ylabel(['% of ' name ' with chain length']); 
-        set(gca, 'XTickLabel', {'Control', '16', '24', '32', '40', '48'}); 
+        ylabel(['% of ' NAME ' with chain length']); 
+        if T==6
+            set(gca, 'XTickLabel', {'Control', '16', '24', '32', '40', '48'}); 
+        elseif T==3
+            set (gca, 'XTickLabel', {'Control', 'Early', 'Late'});  
+        end 
         xlim([0 2]);  
-        print (gcf, '-dpng', [label '_' name '_length.png']); 
-        print (gcf, '-depsc2', [label '_' name '_length.eps']);
+        print (gcf, '-dpng', [label '_' NAME '_length.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_length.eps']);
         close 
 
         subplot(1,3,1); 
@@ -541,13 +605,17 @@ for i=1:4
         legend (length_sat, 'Location', 'EastOutside'); 
         ylim([0 100]); 
         xlim([0 2]); 
-        ylabel(['% of ' name ' with saturation level']); 
-        set(gca, 'XTickLabel', {'Control', '16', '24', '32', '40', '48'}); 
-        print (gcf, '-dpng', [label '_' name '_saturation.png']); 
-        print (gcf, '-depsc2', [label '_' name '_saturation.eps']);
+        ylabel(['% of ' NAME ' with saturation level']); 
+        if T==6
+            set(gca, 'XTickLabel', {'Control', '16', '24', '32', '40', '48'}); 
+        elseif T==3
+            set (gca, 'XTickLabel', {'Control', 'Early', 'Late'});  
+        end 
+        print (gcf, '-dpng', [label '_' NAME '_saturation.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_saturation.eps']);
         close 
     end
 end 
-end 
+%end 
 
 

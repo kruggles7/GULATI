@@ -1,4 +1,4 @@
-function [ plot_mat, bar_mat, percent_changed, G_ ] = lipid_heatmap( mat,names,label, species )
+function [ plot_mat, bar_mat, number_changed, bar_all_sig, names_] = lipid_heatmap( mat,names,label,species)
 
 %from the drosophila paper the lipid levels are 
 % Mol%= the lipid1(mol)/sum of all membrane lipid species (mol)
@@ -10,8 +10,26 @@ function [ plot_mat, bar_mat, percent_changed, G_ ] = lipid_heatmap( mat,names,l
 %  label='super'; 
 
 G=cell.empty; 
-group={'PL', 'SL', 'NL'}; 
-match_=cell2mat(species(:,3));
+group=species(:,2); 
+match_=cell2mat(species(:,1)); 
+[r,c]=size(names); 
+names_=zeros(r,1); 
+
+[r,c]=size(species); 
+group=cell2mat(species(:,1)) 
+group_=cell2mat(species(:,3)); 
+n=cell2mat(names(:,2)); 
+for i=1:r
+    species_group=group(i); 
+    indx=find(n==species_group); 
+    names_(indx)=group_(i); 
+end 
+
+number_changed=double.empty; 
+
+
+
+
 group_percent=zeros(4,5); 
 group_total=zeros(4,1); 
 group_percent1=zeros(4,5); 
@@ -87,15 +105,17 @@ for k=1:5
             end 
         end 
         indx=find(strcmp(name,species(:,2))==1); 
-        G{j,1}=species{indx,3}; 
+        G{j,1}=species{indx,3};
+        H2{j,1}=species{indx,1}; 
         if numel(indx)==1
             group_=species{indx,3};   %%group they belong to  
+            group2=species{indx,1}; 
             %group_=str2num(group_); 
             x1=plot_mat(j,k); 
             x2=plot_mat(j,k+1); 
             diff1=x1/x2; 
             diff2=x1/x2; 
-            if diff1>1.5 || diff2>1.5
+            if diff1>1.5 || diff1<0.66667
                 count=count+1; 
                 group_percent(group_,k)=group_percent(group_,k)+1;
             end 
@@ -108,9 +128,8 @@ for k=1:5
                 x1=plot_mat_all(j,k,b); 
                 x2=plot_mat_all(j,k+1,b); 
                 diff1=x1/x2; 
-                diff2=x1/x2;
-                if diff1>1.5 || diff2>1.5 
-                    group_percent_all(group_,k,b)=group_percent_all(group_,k,b)+1;
+                if diff1>1.5 || diff1<0.66667
+                    group_percent_all(group_,k,b)=group_percent_all(group_,k,b)+1; %group_percent_all(GROUP, TIME, N)
                 end 
             end 
                 
@@ -119,7 +138,7 @@ for k=1:5
             x2=plot_mat1(j,k+1); 
             diff1=x1/x2; 
             diff2=x1/x2;
-            if diff1>1.5 || diff2>1.5
+            if diff1>1.5 || diff1<0.66667
                 count=count+1; 
                 group_percent1(group_,k)=group_percent1(group_,k)+1;
             end 
@@ -129,7 +148,7 @@ for k=1:5
             x2=plot_mat2(j,k+1); 
             diff1=x1/x2; 
             diff2=x1/x2;
-            if diff1>1.5 || diff2>1.5
+            if diff1>1.5 || diff1<0.66667
                 count=count+1; 
                 group_percent2(group_,k)=group_percent2(group_,k)+1;
             end
@@ -139,7 +158,7 @@ for k=1:5
             x2=plot_mat3(j,k+1); 
             diff1=x1/x2; 
             diff2=x1/x2;
-            if diff1>1.5 || diff2>1.5
+            if diff1>1.5 || diff1<0.66667
                 count=count+1; 
                 group_percent3(group_,k)=group_percent3(group_,k)+1;
             end  
@@ -165,16 +184,18 @@ c_b=1;
 for k=1:5
     for j=1:3
         bar_mat(c_b)=group_percent(j,k)/group_total(j)*100; 
+        number_changed(c_b)=group_percent(j,k); 
         bar_mat1(c_b)=group_percent1(j,k)/group_total(j)*100; 
         bar_mat2(c_b)=group_percent2(j,k)/group_total(j)*100; 
         bar_mat3(c_b)=group_percent3(j,k)/group_total(j)*100; 
         for b=1:9
-            bar_mat_all(c_b,b)=group_percent_all(j,k,b)/group_total(j)*100;
+            bar_mat_all(c_b,b)=group_percent_all(j,k,b)/group_total(j)*100; %group_percent_all(GROUP, TIME, N)
+            %bar_mat_all(GROUP, SAMPLE) 1-5, skip, 7-11, skip, 13-17
         end 
         test=[bar_mat1(c_b) bar_mat2(c_b) bar_mat3(c_b)]; 
         bar_avg(c_b)=mean(test); 
         bar_std(c_b)=std(test); 
-        test2=[bar_mat_all(c_b,1) bar_mat_all(c_b,2) bar_mat_all(c_b,3) bar_mat_all(c_b,4) bar_mat_all(c_b,5) bar_mat_all(c_b,6) bar_mat_all(c_b,7) bar_mat_all(c_b,8) bar_mat_all(c_b,9)]; 
+        test2=bar_mat_all(c_b,:); 
         bar_avg_all(c_b)=mean(test2); 
         bar_std_all(c_b)=std(test2); 
         c_b=c_b+1; 
@@ -197,18 +218,22 @@ for i=1:5
     x=1; 
     for k=count2:count2+2
         group1=bar_mat_all(k,:);  
-        count=x; 
+        count=x; %x= 1,2,3,4,5 
         for j=1:5
-            group2=bar_mat_all(count,:); 
-            [h,p]=ttest(group1, group2); 
-            bar_all_sig(k,j)=p; 
-            count=count+4;
+            group2=bar_mat_all(count,:);  %bar_mat_all(GROUP, SAMPLE) 1-5, skip, 7-11, skip, 13-17
+            [h,p]=ttest2(group1, group2); 
+            bar_all_sig(k,j)=p; %for each of the 5 groups 
+            count=count+4; %if count=1
         end 
         x=x+1; 
     end 
-    count2=count2+4; 
+    count2=count2+4; %compare every 5 to make sure you compare the correct combiations
 end 
-     
+
+
+cd ..
+cd results
+cd heatmaps
 
 %bar_mat_=rot90(bar_mat); 
 %bar_mat_=fliplr(bar_mat_) ;
@@ -221,10 +246,14 @@ colormap (gray);
 xlim([0 21]); 
 %legend('PL', 'SL', 'NL', 'Location', 'SouthWest'); 
 set (gca, 'XTickLabel', []); 
-set (gca, 'YTick', [-50 -40 -30 -20 -10 0]); 
-set (gca, 'YTickLabel', [50 40 30 20 10 0]); 
+set (gca, 'YTick',[-100 -80 -60 -40 -20 0]); 
+set (gca, 'YTickLabel', [100 80 60 40 20 0]); 
+ylim([-120 0])
 ylabel('% of lipid class for species with >1.5X change'); 
+set(gca,'FontSize',16,'linewidth',2)
 print (gcf, '-dpng',[label '_heatmap_bars.png']); 
+print (gcf, '-depsc2', [label '_heatmap_bars.eps']); 
+%saveas (gcf,[ label '_heatmap_bars.fig']); 
 
 %AVG of triplicates
 bar_avg=bar_avg*-1; 
@@ -234,15 +263,19 @@ ch=get(bh,'Children');
 set (ch,'CData',bar_color) ; 
 colormap (gray); 
 hold on 
-errorbar (bar_avg, bar_std, '.k', 'MarkerSize', 2);
+errorbar (bar_avg, bar_std, '.k', 'MarkerSize', 2,'linewidth',1);
 hold off
 xlim([0 21]); 
 %legend('PL', 'SL', 'NL', 'Location', 'SouthWest'); 
 set (gca, 'XTickLabel', []); 
-set (gca, 'YTick', [-50 -40 -30 -20 -10 0]); 
-set (gca, 'YTickLabel', [50 40 30 20 10 0]); 
+set (gca, 'YTick',[-100 -80 -60 -40 -20 0]); 
+set (gca, 'YTickLabel', [100 80 60 40 20 0]); 
+ylim ([-120 0]); 
 ylabel('% of lipid class for species with >1.5X change'); 
+set(gca,'FontSize',16,'linewidth',2)
 print (gcf, '-dpng',[label '_heatmap_bars_triplicate.png']); 
+print (gcf, '-depsc2', [label '_heatmap_bars_triplicate.eps']); 
+%saveas (gcf,[ label '_heatmap_bars_triplicate.fig']); 
 
 %AVG of 9
 bar_avg_all=bar_avg_all*-1; 
@@ -252,15 +285,19 @@ ch=get(bh,'Children');
 set (ch,'CData',bar_color) ; 
 colormap (gray); 
 hold on 
-errorbar (bar_avg_all, bar_std_all, '.k', 'MarkerSize', 2);
+errorbar (bar_avg_all, bar_std_all, '.k', 'MarkerSize', 2,'linewidth',1);
 hold off
 xlim([0 21]); 
 %legend('PL', 'SL', 'NL', 'Location', 'SouthWest'); 
 set (gca, 'XTickLabel', []); 
-set (gca, 'YTick', [-50 -40 -30 -20 -10 0]); 
-set (gca, 'YTickLabel', [50 40 30 20 10 0]); 
+set (gca, 'YTick',[-100 -80 -60 -40 -20 0]); 
+set (gca, 'YTickLabel', [100 80 60 40 20 0]); 
+ylim([-120 0])
 ylabel('% of lipid class for species with >1.5X change'); 
+set(gca,'FontSize',16,'linewidth',2)
 print (gcf, '-dpng',[label '_heatmap_bars_all.png']); 
+print (gcf, '-depsc2', [label '_heatmap_bars_all.eps']); 
+%saveas (gcf,[ label '_heatmap_bars_all.fig']); 
 
 %AVG of 9 no bars
 bh=bar(bar_avg_all, 1); 
@@ -271,64 +308,62 @@ colormap (gray);
 xlim([0 21]); 
 %legend('PL', 'SL', 'NL', 'Location', 'SouthWest'); 
 set (gca, 'XTickLabel', []); 
-set (gca, 'YTick', [-50 -40 -30 -20 -10 0]); 
-set (gca, 'YTickLabel', [50 40 30 20 10 0]); 
+set (gca, 'YTick',[-100 -80 -60 -40 -20 0]); 
+set (gca, 'YTickLabel', [100 80 60 40 20 0]); 
 ylabel('% of lipid class for species with >1.5X change'); 
+set(gca,'FontSize',16,'linewidth',2)
+ylim([-120 0])
 print (gcf, '-dpng',[label '_heatmap_bars_all_nobars.png']); 
+print (gcf, '-depsc2', [label '_heatmap_bars_all_nobars.eps']); 
+%saveas (gcf,[ label '_heatmap_bars_all_nobars.fig']); 
 
 
 indx=find(plot_mat==0); 
 plot_mat(indx)=1; 
 indx=find(isnan(plot_mat)==1); 
 plot_mat(indx)=1; 
-plot_mat=log10(plot_mat); 
+plot_mat=log2(plot_mat); 
 x={'8','16','24','32','40','48'}; 
 plots=flipud(plot_mat); 
-G=flipud(G); 
-name_group=flipud(names(:,1)); 
+%G=flipud(G); 
+name_group=names(:,1); 
 cmap=redgreencmap(256); 
-H=HeatMap(plots,'ColumnLabels',x,'RowLabels',name_group, 'DisplayRange', 3, 'Colormap', cmap, 'Symmetric','true'); 
-%H=heatmap_rg(plots, x, name_group, [],-1, 1, 'ColorBar', 1, 'Colormap', 'money');%'ColorLevels', 256, 
-%H=heatmap(plots, x, name_group, [], 'ColorBar', 1, 'Colormap', 'money');%'ColorLevels', 256, 
+%cmap='jet'; 
+H=HeatMap(plots,'ColumnLabels',x,'RowLabels',name_group, 'DisplayRange', 4, 'Colormap', cmap, 'Symmetric','true'); 
+set(gca,'FontSize',16,'linewidth',2)
 plot(H);
+ylim([-100 0])
 print (gcf, '-dpng',[ label '_heatmap.png']); 
+print (gcf, '-depsc2', [label '_heatmap.eps']); 
+saveas(gcf, [label '_heatmap.fig']); 
 
-%sorted-------------------------------------------------------------------
-[r,c]=size(plots); 
-S(:,1)=1:r; 
-S(:,2)=plots(:,1)-plots(:,6); 
-S=sortrows(S,2); 
-plots2=zeros(r,c); 
-names2=cell.empty; 
-G_=double.empty; 
-for i=1:r
-    indx=S(i,1); 
-    plots2(i,:)=plots(indx,:);
-    temp=G{indx,1}; 
-    G_(i,1)=temp; 
-end 
-H=HeatMap(plots2,'ColumnLabels',x, 'RowLabels', G_, 'DisplayRange', 3, 'Colormap', cmap, 'Symmetric','true');  
-plot(H);
-print (gcf, '-dpng',[ label '_sorted_heatmap.png']); 
-
-%clustergram(plots, 'Cluster', 1); 
-close all 
-%G
-
-% max_=max(cell2mat(names(:,2))); 
-% count=1; 
-% for i=1:max_
-%     indx=find(cell2mat(names(:,2))==i); 
-%     plot_mat_=plot_mat(indx,:); 
-%     plot_mat_=flipud(plot_mat_); 
-%     name_=names(indx,1); 
-%     name_=flipud(name_); 
-%     H=HeatMap(plot_mat_,'ColumnLabels',x,'RowLabels',name_, 'DisplayRange',1); 
-%     plot(H); 
-%     i_str=num2str(i); 
-%     print (gcf, '-dpng',[i_str '_' label '_heatmap_species.png']); 
-%     count=count+1; 
-%     %close all 
+% %sorted-------------------------------------------------------------------
+% [r,c]=size(plots); 
+% S(:,1)=1:r; 
+% S(:,2)=plots(:,1)-plots(:,6); 
+% S=sortrows(S,2); 
+% plots2=zeros(r,c); 
+% G_=double.empty; 
+% H_=double.empty; 
+% for i=1:r
+%     indx=S(i,1); 
+%     plots2(i,:)=plots(indx,:);
+%     temp=G{indx,1}; 
+%     G_(i,1)=temp; 
+%     temp=H2{indx,1}; 
+%     H_(i,1)=temp; 
 % end 
+% H=HeatMap(plots2,'ColumnLabels',x, 'RowLabels', G_, 'DisplayRange', 4, 'Colormap', cmap, 'Symmetric','true');  
+% set(gca,'FontSize',16,'linewidth',2)
+% plot(H);
+% print (gcf, '-dpng',[ label '_sorted_heatmap.png']); 
+% print (gcf, '-depsc2', [label '_sorted_heatmap.eps']); 
+% %saveas (gcf,[ label '_sorted_heatmap.fig']); 
+% close all 
+
+cd .. 
+cd ..
+cd programs
+
 end
 

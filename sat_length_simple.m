@@ -1,14 +1,15 @@
-function [anova_sat, anova_chain, anova_combo, plot_combo, combo_text] = sat_length( mat, lipids, species, label, T )
+function [anova_sat, anova_chain, anova_combo ] = sat_length_simple( mat, lipids, species, label, T, stat_yes )
 %UNTITLED Summary of this function goes here
 % %   Detailed explanation goes here
 % 
-% mat=DD2f_p_; 
-% lipids=DD2f_names; 
-% label='parasite'; 
-% T=6; 
+mat=DD2f_p_; 
+lipids=DD2f_names; 
+label='parasite'; 
+T=6; 
+stat_yes=0
 
 [r,c]=size(lipids); 
-group={'PL', 'SL', 'NL', 'DAG'}; 
+group={'PL', 'SL', 'NL', 'DAG', 'APG'}; 
 match_=cell2mat(species(:,3)); 
 anova_sat=cell.empty;
 anova_chain=cell.empty; 
@@ -20,7 +21,7 @@ cd ..
 cd results
 mkdir saturation
 cd saturation
-for i=1:4
+for i=1%:5
     indx=find(match_==i); 
     L=species(indx,2); 
     saturation=double.empty; 
@@ -30,6 +31,7 @@ for i=1:4
     col_label=double.empty; 
     levels=double.empty; 
     n_=1; 
+    NAME=group{i}; 
     for k=1:length(L)
         lipid=L{k}; %the name of the lipid we are including
         [r,c]=size(lipids); 
@@ -190,8 +192,12 @@ for i=1:4
                 stat_mat(:,j2)=temp; 
                 d=d+9; 
             end
-            p_sat=anova1(stat_mat); 
-            close all
+            if stat_yes==1
+                p_sat=anova1(stat_mat); 
+                close all
+            else 
+                p_sat='NA'; 
+            end 
             anova_sat{a_count,3}=p_sat; 
             temp_ttest=[]; 
             for n=1:T
@@ -247,7 +253,13 @@ for i=1:4
                 stat_mat(:,j2)=temp; 
                 d=d+9; 
             end
-            p_chain=anova1(stat_mat); 
+            if stat_yes==1
+                p_chain=anova1(stat_mat); 
+                close all
+            else 
+                p_chain='NA'; 
+            end 
+            
             close all
             anova_chain{c_count,3}=p_chain; 
             temp_ttest=[]; 
@@ -320,8 +332,12 @@ for i=1:4
                         stat_mat(:,j2)=temp; 
                         d=d+9; 
                     end
-                    p_chain=anova1(stat_mat); 
-                    close all
+                    if stat_yes==1
+                        p_chain=anova1(stat_mat); 
+                        close all
+                    else 
+                        p_chain='NA'; 
+                    end 
                     anova_combo{co_count,4}=p_chain; 
                     temp_ttest=[]; 
                     for n=1:T
@@ -349,63 +365,167 @@ for i=1:4
                 end 
             end 
         end 
-        [r3,c3]=size(plot_combo); 
-        plot_combo=rot90(plot_combo); 
-        plot_combo=flipud(plot_combo); 
-        name=group{i}; 
-        bar (1:c3, plot_combo, 'stack');
-        hold on 
-        combo_text=cell.empty; 
-        for i3=1:r3
-            t=num2str(text_combo(i3,1)); 
-            v=num2str(text_combo(i3,2)); 
-            x=[v ':' t]; 
-            combo_text{i3}=x;  
-        end 
-        legend(combo_text, 'Location', 'EastOutside');    
-        ylim([0 100]); 
-        ylabel(['% of ' name ' with length:saturation']);    
-        if T==6
-            set(gca, 'XTickLabel', {'8', '16', '24', '32', '40', '48'}); 
-        end 
-        print (gcf, '-dpng', [label '_' name '_combo.png']); 
-        print (gcf, '-depsc2', [label '_' name '_combo.eps']);
-        close 
-
+   
+        
+        %plot length
         [r3,c3]=size(plot_length); 
-        plot_length=rot90(plot_length); 
-        plot_length=flipud(plot_length); 
-        bar (1:c3, plot_length, 'stack'); 
-        hold on
-        length_plot=cell.empty; 
-        for i3=1:r3
-            t=text_length(i3); 
-            length_plot{i3}=num2str(t); 
+        plot_length_=zeros(c3,4);  
+        for S=1:r3
+            if text_length(S)<=12
+                plot_length_(:,1)=plot_length_(:,1)+ plot_length(S,:)'; 
+            elseif text_length(S)>12 && text_length(S)<=24
+                plot_length_(:,2)=plot_length_(:,2)+ plot_length(S,:)'; 
+            elseif text_length(S)<42
+                 plot_length_(:,3)=plot_length_(:,3)+ plot_length(S,:)'; 
+            else 
+                plot_length_(:,4)=plot_length_(:,4)+plot_length(S,:)'; 
+            end 
         end 
-
-        legend (length_plot, 'Location', 'EastOutside');  
-        hold off 
+        
+        f1=subplot(6,1,1);
+        bar(1:4, plot_length_(1,:)); 
+        set(gca, 'XTickLabel', ''); 
         ylim([0 100]); 
-        ylabel(['% of ' name ' with chain length']); 
-        if T==6
-            set(gca, 'XTickLabel', {'8', '16', '24', '32', '40', '48'}); 
-        end 
-        print (gcf, '-dpng', [label '_' name '_length.png']); 
-        print (gcf, '-depsc2', [label '_' name '_length.eps']);
+        ylabel('8'); 
+        title(['% of ' NAME  ' with chain length']); 
+        
+        f2=subplot(6,1,2);
+        bar(1:4,plot_length_(2,:)); 
+        set(gca, 'XTickLabel', ''); 
+        ylim([0 100]); 
+        ylabel('16'); 
+        linkaxes([f1 f2],'x'); %make y axis the same
+        pos1=get(f1,'Position'); %find the current position [x,y,width,height]
+        pos2=get(f2,'Position'); %find the current position [x,y,width,height]
+        pos2(2)=pos1(2) - pos2(4); %move the second so it touches the first 
+        set (f2,'Position',pos2); 
+        
+        f3=subplot(6,1,3); 
+        bar(1:4,plot_length_(3,:)); 
+        ylim([0 100]); 
+        set(gca, 'XTickLabel', ''); 
+        ylabel('24'); 
+        linkaxes([f2 f3],'x'); %make y axis the same
+        pos1=get(f2,'Position'); %find the current position [x,y,width,height]
+        pos2=get(f3,'Position'); %find the current position [x,y,width,height]
+        pos2(2)=pos1(2) - pos2(4); %move the second so it touches the first 
+        set (f3,'Position',pos2); 
+        
+        f4=subplot(6,1,4); 
+        bar(1:4,plot_length_(4,:)); 
+        ylim([0 100]); 
+        set(gca, 'XTickLabel', ''); 
+        ylabel('32'); 
+        linkaxes([f3 f4],'x'); %make y axis the same
+        pos1=get(f3,'Position'); %find the current position [x,y,width,height]
+        pos2=get(f4,'Position'); %find the current position [x,y,width,height]
+        pos2(2)=pos1(2) - pos2(4); %move the second so it touches the first 
+        set (f4,'Position',pos2); 
+        
+        f5=subplot(6,1,5); 
+        bar(1:4,plot_length_(5,:)); 
+        ylim([0 100]); 
+        set(gca, 'XTickLabel', '');  
+        ylabel('40'); 
+        linkaxes([f4 f5],'x'); %make y axis the same
+        pos1=get(f4,'Position'); %find the current position [x,y,width,height]
+        pos2=get(f5,'Position'); %find the current position [x,y,width,height]
+        pos2(2)=pos1(2) - pos2(4); %move the second so it touches the first 
+        set (f5,'Position',pos2); 
+        
+        f6=subplot(6,1,6); 
+        bar(1:4,plot_length_(6,:)); 
+        ylim([0 100]); 
+        set(gca, 'XTickLabel', {'Short', 'Medium', 'Long', 'Very Long'}); 
+        ylabel('48'); 
+        linkaxes([f5 f6],'x'); %make y axis the same
+        pos1=get(f5,'Position'); %find the current position [x,y,width,height]
+        pos2=get(f6,'Position'); %find the current position [x,y,width,height]
+        pos2(2)=pos1(2) - pos2(4); %move the second so it touches the first 
+        set (f6,'Position',pos2);
+        
+        
+        print (gcf, '-dpng', [label '_' NAME '_length_simple.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_length_simple.eps']);
         close 
 
         [r3,c3]=size(plot_sat); 
-        plot_sat=rot90(plot_sat); 
-        plot_sat=flipud(plot_sat); 
-        bar (1:c3, plot_sat, 'stack'); 
-        hold on
-        length_sat=cell.empty;
-        legend (length_sat, 'Location', 'EastOutside'); 
+        plot_sat_=zeros(c3,3);  
+        for S=1:r3
+            if text_sat(S)==0
+                plot_sat_(:,1)=plot_sat_(:,1)+ plot_sat(S,:)'; 
+            elseif text_sat(S)==1
+                plot_sat_(:,2)=plot_sat_(:,2)+ plot_sat(S,:)'; 
+            elseif text_sat(S)>1
+                 plot_sat_(:,3)=plot_sat_(:,3)+ plot_sat(S,:)'; 
+            else 
+                text_sat(S)
+            end 
+        end 
+        
+        f1=subplot(6,1,1);
+        bar(1:3, plot_sat_(1,:)); 
+        set(gca, 'XTickLabel', ''); 
         ylim([0 100]); 
-        ylabel(['% of ' name ' with saturation level']); 
-        set(gca, 'XTickLabel', {'8', '16', '24', '32', '40', '48'}); 
-        print (gcf, '-dpng', [label '_' name '_saturation.png']); 
-        print (gcf, '-depsc2', [label '_' name '_saturation.eps']);
+        ylabel('8'); 
+        title(['% of ' NAME ' with saturation level']); 
+        
+        f2=subplot(6,1,2);
+        bar(1:3,plot_sat_(2,:)); 
+        set(gca, 'XTickLabel', ''); 
+        ylim([0 100]); 
+        ylabel('16'); 
+        linkaxes([f1 f2],'x'); %make y axis the same
+        pos1=get(f1,'Position'); %find the current position [x,y,width,height]
+        pos2=get(f2,'Position'); %find the current position [x,y,width,height]
+        pos2(2)=pos1(2) - pos2(4); %move the second so it touches the first 
+        set (f2,'Position',pos2); 
+        
+        f3=subplot(6,1,3); 
+        bar(1:3,plot_sat_(3,:)); 
+        ylim([0 100]); 
+        set(gca, 'XTickLabel', ''); 
+        ylabel('24'); 
+        linkaxes([f2 f3],'x'); %make y axis the same
+        pos1=get(f2,'Position'); %find the current position [x,y,width,height]
+        pos2=get(f3,'Position'); %find the current position [x,y,width,height]
+        pos2(2)=pos1(2) - pos2(4); %move the second so it touches the first 
+        set (f3,'Position',pos2); 
+        
+        f4=subplot(6,1,4); 
+        bar(1:3,plot_sat_(4,:)); 
+        ylim([0 100]); 
+        set(gca, 'XTickLabel', ''); 
+        ylabel('32'); 
+        linkaxes([f3 f4],'x'); %make y axis the same
+        pos1=get(f3,'Position'); %find the current position [x,y,width,height]
+        pos2=get(f4,'Position'); %find the current position [x,y,width,height]
+        pos2(2)=pos1(2) - pos2(4); %move the second so it touches the first 
+        set (f4,'Position',pos2); 
+        
+        f5=subplot(6,1,5); 
+        bar(1:3,plot_sat_(5,:)); 
+        ylim([0 100]); 
+        set(gca, 'XTickLabel', '');  
+        ylabel('40'); 
+        linkaxes([f4 f5],'x'); %make y axis the same
+        pos1=get(f4,'Position'); %find the current position [x,y,width,height]
+        pos2=get(f5,'Position'); %find the current position [x,y,width,height]
+        pos2(2)=pos1(2) - pos2(4); %move the second so it touches the first 
+        set (f5,'Position',pos2); 
+        
+        f6=subplot(6,1,6); 
+        bar(1:3,plot_sat_(6,:)); 
+        ylim([0 100]); 
+        set(gca, 'XTickLabel', {'SAT', 'MUFA', 'PUFA'}); 
+        ylabel('48'); 
+        linkaxes([f5 f6],'x'); %make y axis the same
+        pos1=get(f5,'Position'); %find the current position [x,y,width,height]
+        pos2=get(f6,'Position'); %find the current position [x,y,width,height]
+        pos2(2)=pos1(2) - pos2(4); %move the second so it touches the first 
+        set (f6,'Position',pos2); 
+        print (gcf, '-dpng', [label '_' NAME '_saturation_simple.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_saturation_simple.eps']);
         close 
     else %% if its the control---------------------------------------
         for k2=1:r1
@@ -483,68 +603,54 @@ for i=1:4
                 end
             end
         end 
-        subplot(1,3,1);
-       [r3,c3]=size(plot_combo);
-        plot_combo=rot90(plot_combo); 
-        plot_combo=flipud(plot_combo); 
-        name=group{i}; 
-        bar (1:2:c3*2, plot_combo, 'stack');
-        hold on 
-        combo_text=cell.empty; 
-        for i3=1:r3
-            t=num2str(text_combo(i3,1)); 
-            v=num2str(text_combo(i3,2)); 
-            x=[v ':' t]; 
-            combo_text{i3}=x;  
+        %plot length
+        [r3,c3]=size(plot_length); 
+        plot_length_=zeros(c3,4);  
+        for S=1:r3
+            if text_length(S)<=12
+                plot_length_(:,1)=plot_length_(:,1)+ plot_length(S,:)'; 
+            elseif text_length(S)>12 && text_length(S)<=24
+                plot_length_(:,2)=plot_length_(:,2)+ plot_length(S,:)'; 
+            elseif text_length(S)<42
+                 plot_length_(:,3)=plot_length_(:,3)+ plot_length(S,:)'; 
+            else 
+                plot_length_(:,4)=plot_length_(:,4)+plot_length(S,:)'; 
+            end 
         end 
-        legend(combo_text, 'Location', 'EastOutside');    
+        
+        f1=subplot(6,1,1);
+        bar(1:4, plot_length_(1,:)); 
+        set(gca, 'XTickLabel', {'Short', 'Medium', 'Long', 'Very Long'}); 
         ylim([0 100]); 
-        xlim([0 2]); 
-        ylabel(['% of ' name ' with length:saturation']);    
-        set(gca, 'XTickLabel', {'Control', '16', '24', '32', '40', '48'}); 
-        print (gcf, '-dpng', [label '_' name '_combo.png']); 
-        print (gcf, '-depsc2', [label '_' name '_combo.eps']);
+        ylabel('Uninfected'); 
+        title(['% of ' NAME  ' with chain length']); 
+        print (gcf, '-dpng', [label '_' NAME '_length.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_length.eps']);
         close 
 
-        subplot(1,3,1); 
-        [r3,c3]=size(plot_length);
-        plot_length=rot90(plot_length); 
-        plot_length=flipud(plot_length);  
-        bar (1:2:c3*2, plot_length, 'stack'); 
-        hold on
-        length_plot=cell.empty; 
-        for i3=1:r3
-            t=num2str(text_length(i3)); 
-            length_plot{i3}=t; 
-        end 
-
-        legend (length_plot, 'Location', 'EastOutside');  
-        hold off 
-        ylim([0 100]); 
-        ylabel(['% of ' name ' with chain length']); 
-        set(gca, 'XTickLabel', {'Control', '16', '24', '32', '40', '48'}); 
-        xlim([0 2]);  
-        print (gcf, '-dpng', [label '_' name '_length.png']); 
-        print (gcf, '-depsc2', [label '_' name '_length.eps']);
-        close 
-
-        subplot(1,3,1); 
         [r3,c3]=size(plot_sat); 
-        plot_sat=rot90(plot_sat); 
-        plot_sat=flipud(plot_sat); 
-        bar (1:2:c3*2, plot_sat, 'stack'); 
-        length_sat=cell.empty; 
-        for i3=1:r3
-            t=num2str(text_sat(i3)); 
-            length_sat{i3}=t; 
+        plot_sat_=zeros(c3,3);  
+        for S=1:r3
+            if text_sat(S)==0
+                plot_sat_(:,1)=plot_sat_(:,1)+ plot_sat(S,:)'; 
+            elseif text_sat(S)==1
+                plot_sat_(:,2)=plot_sat_(:,2)+ plot_sat(S,:)'; 
+            elseif text_sat(S)>1
+                 plot_sat_(:,3)=plot_sat_(:,3)+ plot_sat(S,:)'; 
+            else 
+                text_sat(S)
+            end 
         end 
-        legend (length_sat, 'Location', 'EastOutside'); 
+        
+        f1=subplot(6,1,1);
+        bar(1:3, plot_sat_(1,:)); 
+        set(gca, 'XTickLabel', {'SAT', 'MUFA', 'PUFA'}); 
         ylim([0 100]); 
-        xlim([0 2]); 
-        ylabel(['% of ' name ' with saturation level']); 
-        set(gca, 'XTickLabel', {'Control', '16', '24', '32', '40', '48'}); 
-        print (gcf, '-dpng', [label '_' name '_saturation.png']); 
-        print (gcf, '-depsc2', [label '_' name '_saturation.eps']);
+        ylabel('Uninfected'); 
+        title(['% of ' NAME ' with saturation level']); 
+         
+        print (gcf, '-dpng', [label '_' NAME '_saturation.png']); 
+        print (gcf, '-depsc2', [label '_' NAME '_saturation.eps']);
         close 
     end
 end 
