@@ -1,13 +1,13 @@
-%function [anova_sat, anova_chain, anova_combo, plot_combo, combo_text] = sat_length_gams_simplev2( mat, lipids, species, label, T )
+function [anova_sat, anova_chain, anova_combo, plot_combo, combo_text] = sat_length_gams_simple( mat, lipids, species, label, T, stat_yes )
 %UNTITLED Summary of this function goes here
 % %   Detailed explanation goes here
 % 
-mat=all; 
-lipids=gam_text; 
-label='gams'; 
-T=3; 
-[r,c]=size(mat);  
-stat_yes=0; 
+% mat=all; 
+% lipids=gam_text; 
+% label='gams'; 
+% T=3; 
+% [r,c]=size(mat);  
+ %stat_yes=0; 
 
 
 [r,c]=size(lipids); 
@@ -616,6 +616,6 @@ for i=1:5
         close 
     end
 end 
-%end 
+end 
 
 

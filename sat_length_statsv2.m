@@ -1,4 +1,4 @@
-function [anova_sat_RC,anova_sat_PR,anova_sat_PC, anova_length_RC,anova_length_PR, anova_length_PC, anova_combo_RC,anova_combo_PR, anova_combo_PC] = sat_length_stats( mat_control, matp, matR, lipids, species )
+function [anova_sat_RC,anova_sat_PR,anova_sat_PC, anova_length_RC,anova_length_PR, anova_length_PC, anova_combo_RC,anova_combo_PR, anova_combo_PC] = sat_length_statsv2( mat_control, matp, matR, lipids, species )
 %UNTITLED Summary of this function goes here
 % %   Detailed explanation goes here
 % % 
@@ -9,8 +9,8 @@ function [anova_sat_RC,anova_sat_PR,anova_sat_PC, anova_length_RC,anova_length_P
 %  species=species; 
  
 [r,c]=size(lipids); 
-group={'PL', 'SL', 'NL', 'DAG'}; 
-match_=cell2mat(species(:,3)); 
+group={'PL', 'SL', 'NL'}; 
+match=cell2mat(species(:,3)); 
 anova_sat=cell.empty;
 anova_chain=cell.empty; 
 anova_combo=cell.empty; 
@@ -18,7 +18,9 @@ a_count=1;
 l_count=1; 
 co_count=1; 
 
-for i=1:4
+match_=match; 
+match_(match==4)=3; 
+for i=1:3
     indx=find(match_==i); 
     L=species(indx,2); 
     saturation=double.empty; 

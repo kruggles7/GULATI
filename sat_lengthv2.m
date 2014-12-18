@@ -1,15 +1,9 @@
-function [anova_sat, anova_chain, anova_combo, plot_combo, combo_text] = sat_length( mat, lipids, species, label, T )
-%UNTITLED Summary of this function goes here
-% %   Detailed explanation goes here
-% 
-% mat=DD2f_p_; 
-% lipids=DD2f_names; 
-% label='parasite'; 
-% T=6; 
+function [anova_sat, anova_chain, anova_combo, plot_combo, combo_text] = sat_lengthv2( mat, lipids, species, label, T )
+%same as sat_length except NL and DAG are combined 
 
 [r,c]=size(lipids); 
-group={'PL', 'SL', 'NL', 'DAG'}; 
-match_=cell2mat(species(:,3)); 
+group={'PL', 'SL', 'NL'}; 
+match=cell2mat(species(:,3)); 
 anova_sat=cell.empty;
 anova_chain=cell.empty; 
 anova_combo=cell.empty; 
@@ -20,7 +14,11 @@ cd ..
 cd results
 mkdir saturation
 cd saturation
-for i=1:4
+
+match_=match; 
+match_(match==4)=3; 
+
+for i=1:3
     indx=find(match_==i); 
     L=species(indx,2); 
     saturation=double.empty; 

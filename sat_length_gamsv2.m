@@ -2,10 +2,10 @@ function [anova_sat, anova_chain, anova_combo, plot_combo, combo_text] = sat_len
 %UNTITLED Summary of this function goes here
 % %   Detailed explanation goes here
 % 
-% mat=both; 
+% mat=all; 
 % lipids=gam_text; 
 % label='gams'; 
-% T=2; 
+% T=3; 
 [r,c]=size(mat);  
 
 [r,c]=size(lipids); 
@@ -27,11 +27,9 @@ for i=1:4
     L=species(indx,2); 
     saturation=double.empty; 
     chain_length=double.empty;
-    sum_=double.empty; 
     time_mat=double.empty; 
     col_label=double.empty; 
     levels=double.empty; 
-    control_levels=double.empty; 
     n_=1; 
     for k=1:length(L)
         lipid=L{k}; %the name of the lipid we are including
@@ -79,14 +77,12 @@ for i=1:4
                         chain=[chain c_] ;
                     end
                     chain = str2num(chain); 
-                    %chain_length(n_,1)=chain; 
-                    
                     for p_=q1+2:rL
                         c_=text_(p_) ;
                         sat_=[sat_ c_]; 
                     end 
                     sat_=str2num(sat_);
-               %     saturation(n_,1)=sat_; 
+                    
                %FOR ADDING SECOND NUMBER -----------------
                     rL=length(text_); 
                     if numel(Q)>0
@@ -146,7 +142,7 @@ for i=1:4
     %make an average with time for each member of the group
     [r1,c1]=size(levels); 
     levels_sum=nansum(levels); 
-    levels_percent=zeros(r1,c1); 
+    levels_percent=nan(r1,c1); 
     for k2=1:r1
         for j2=1:c1
             levels_percent(k2,j2)=(levels(k2,j2)/levels_sum(j2))*100; 
@@ -156,8 +152,8 @@ for i=1:4
         for k2=1:r1
             d=1; 
             for j=1:T 
-                time_mat(k2,j)=nanmean(levels(k2,d:d+26)); 
-                d=d+27;  
+                time_mat(k2,j)=nanmean(levels(k2,d:d+8)); 
+                d=d+9;  
             end
         end
         sum_=nansum(time_mat);
@@ -183,16 +179,17 @@ for i=1:4
             end 
             text_sat(j)=u; 
             stat_sat=levels_percent(indx,:); 
-            stat_mat=double.empty; 
+            stat_mat=nan(9,3); 
             [r3,c3]=size(stat_sat); 
             if r3>1
                 stat_sat=nansum(stat_sat); 
             end  
             d=1; 
             for j2=1:T 
-                temp=stat_sat(d:d+26); 
+                temp=stat_sat(d:d+8); 
+                temp(temp==0)=nan;  
                 stat_mat(:,j2)=temp; 
-                d=d+27; 
+                d=d+9; 
             end
             p_sat=anova1(stat_mat); 
             close all
@@ -240,16 +237,17 @@ for i=1:4
             end 
             text_length(j)=u; 
             stat_chain=levels_percent(indx,:); 
-            stat_mat=double.empty; 
+            stat_mat=nan(9,3); 
             [r3,c3]=size(stat_chain); 
             if r3>1
                 stat_chain=nansum(stat_chain); 
             end  
             d=1; 
             for j2=1:T 
-                temp=stat_chain(d:d+26); 
+                temp=stat_chain(d:d+8);
+                temp(temp==0)=nan; 
                 stat_mat(:,j2)=temp; 
-                d=d+27; 
+                d=d+9; 
             end
             p_chain=anova1(stat_mat); 
             close all
@@ -313,16 +311,17 @@ for i=1:4
                     anova_combo{co_count,2}=ul;
                     anova_combo{co_count,3}=us; 
                     stat_combo=levels_percent(indx,:); 
-                    stat_mat=double.empty; 
+                    stat_mat=nan(9,3); 
                     [r3,c3]=size(stat_combo); 
                     if r3>1
                         stat_combo=nansum(stat_combo); 
                     end  
                     d=1; 
                     for j3=1:T 
-                        temp=stat_combo(d:d+26); 
+                        temp=stat_combo(d:d+8); 
+                        temp(temp==0)=nan; 
                         stat_mat(:,j3)=temp; 
-                        d=d+27; 
+                        d=d+9; 
                     end
                     p_chain=anova1(stat_mat); 
                     close all

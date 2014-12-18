@@ -21,7 +21,8 @@ uninfected=cell2mat(DD2fraction(4:307, 113:115));
 [uninf, uinf_NaN]=filter_std(uninfected,3,1); 
 
 % %FIGURE 1- lipid species bar charts
-% [mol_parasite, mol_rbc, mol_uninfected, plot_mat, mol_names1]=Figure1_v2( DD2f_p_, DD2f_R_, uninf, DD2f_names, species );
+ %[mol_parasite, mol_rbc, mol_uninfected, plot_mat, plot_std,control_mat, control_std, mol_names1]=Figure1_v3( DD2f_p_, DD2f_R_, uninf, DD2f_names, species );
+ %[RBC_mean, RBC_std, parasite_mean, parasite_std, control] = make_raw_data( DD2f_p_, DD2f_R_, uninf, DD2f_names);
 % [ anova_parasite, ttest_parasite, statdatap] = anova_ttest_final( DD2f_p_, DD2f_names, 6, 9 ); 
 % [ anova_RBC, ttest_RBC, statdataR] = anova_ttest_final( DD2f_R_, DD2f_names, 6, 9 ); 
 % [ pvalue_p_R, pvalue_p_u, pvalue_R_u ] = ttest_within_species( DD2f_p_, DD2f_R_, uninf, DD2f_names, 6); 
@@ -30,48 +31,48 @@ uninfected=cell2mat(DD2fraction(4:307, 113:115));
 % [anova_RBC_mol, ttest_RBC_mol, statdataR_mol]=anova_ttest_final(mol_rbc, mol_names1, 6,9); 
 % [pvalue_p_R_mol, pvalue_p_u_mol, pvalue_R_u_mol]= ttest_within_species(mol_parasite, mol_rbc, mol_uninfected, mol_names1, 6); 
 %  
- cd ..
- cd results
- mkdir ('heatmaps')
- cd ..
- cd programs
-%FIGURE 2 - heatmap
-  [ plot_mat_R, bar_mat_R, percent_changed_R, stats_R, names_R] = lipid_heatmap ( DD2f_R_, DD2f_names, 'RBC', species); 
- cmap='jet';
- R=flipud(names_R); 
- H=HeatMap(R, 'Colormap', cmap, 'Symmetric','false' );
- plot(H); 
- cd ..
- cd results
- cd heatmaps
- print (gcf, '-dpng', 'RBC_names.png'); 
- print (gcf, '-depsc2', ['RBC_names.eps']);
- %saveas (gcf, 'RBC_names.fig'); 
- cd ..
- cd .. 
- cd programs
- close all
-  [ plot_mat_p, bar_mat_p, percent_changed_p, stats_p, names_p ] = lipid_heatmap ( DD2f_p_, DD2f_names, 'parasite', species); 
- P=flipud(names_p); 
-  H=HeatMap(P, 'Colormap', cmap, 'Symmetric','false'); 
- plot(H);
- cd ..
- cd results
- cd heatmaps
- print (gcf, '-dpng', 'parasite_names.png')
- print (gcf, '-depsc2', [ 'parasite_names.eps']); 
- %saveas (gcf, 'parasite_names.fig'); 
- close all
- cd ..
- cd .. 
- cd programs
+%  cd ..
+%  cd results
+%  mkdir ('heatmaps')
+%  cd ..
+%  cd programs
+% %%FIGURE 2 - heatmap
+%   [ plot_mat_R, bar_mat_R, stat_all_R, percent_changed_R, stats_R, names_R] = lipid_heatmapv2 ( DD2f_R_, DD2f_names, 'RBC', species); 
+%  cmap='jet';
+%  R=flipud(names_R); 
+%  H=HeatMap(R, 'Colormap', cmap, 'Symmetric','false' );
+%  plot(H); 
+%  cd ..
+%  cd results
+%  cd heatmaps
+%  print (gcf, '-dpng', 'RBC_names.png'); 
+%  print (gcf, '-depsc2', ['RBC_names.eps']);
+%  %saveas (gcf, 'RBC_names.fig'); 
+%  cd ..
+%  cd .. 
+%  cd programs
+%  close all
+%   [ plot_mat_p, bar_mat_p, stat_all_p, percent_changed_p, stats_p, names_p ] = lipid_heatmapv2 ( DD2f_p_, DD2f_names, 'parasite', species); 
+%  P=flipud(names_p); 
+%   H=HeatMap(P, 'Colormap', cmap, 'Symmetric','false'); 
+%  plot(H);
+%  cd ..
+%  cd results
+%  cd heatmaps
+%  print (gcf, '-dpng', 'parasite_names.png')
+%  print (gcf, '-depsc2', [ 'parasite_names.eps']); 
+%  %saveas (gcf, 'parasite_names.fig'); 
+%  close all
+%  cd ..
+%  cd .. 
+%  cd programs
 
  
-% %length and saturation bars 
-%  [anova_sat_p, anova_chain_p, anova_combo_p, plot_combo_p, combo_text_p]= sat_length(DD2f_p_, DD2f_names, species, 'parasite', 6); 
-%  [anova_sat_R, anova_chain_R, anova_combo_R, plot_combo_R, combo_text_R]= sat_length(DD2f_R_, DD2f_names, species, 'RBC', 6);
-%  [anova_sat_u, anova_chain_u, anova_combo_u, plot_combo_u, combo_text_u]=sat_length(uninf, DD2f_names, species, 'uninfected',1); 
-%  [anova_sat_RC,anova_sat_PR,anova_sat_PC, anova_length_RC,anova_length_PR, anova_length_PC, anova_combo_RC,anova_combo_PR, anova_combo_PC] = sat_length_stats( uninf, DD2f_p_, DD2f_R_, DD2f_names, species ); 
+%length and saturation bars 
+[anova_sat_p, anova_chain_p, anova_combo_p, plot_combo_p, combo_text_p]= sat_lengthv2(DD2f_p_, DD2f_names, species, 'parasite', 6); 
+[anova_sat_R, anova_chain_R, anova_combo_R, plot_combo_R, combo_text_R]= sat_lengthv2(DD2f_R_, DD2f_names, species, 'RBC', 6);
+[anova_sat_u, anova_chain_u, anova_combo_u, plot_combo_u, combo_text_u]=sat_lengthv2(uninf, DD2f_names, species, 'uninfected',1); 
+ [anova_sat_RC,anova_sat_PR,anova_sat_PC, anova_length_RC,anova_length_PR, anova_length_PC, anova_combo_RC,anova_combo_PR, anova_combo_PC] = sat_length_statsv2( uninf, DD2f_p_, DD2f_R_, DD2f_names, species ); 
 
 %plot combo info
 %plot_combo(plot_combo_p, plot_combo_R, plot_combo_u, combo_text_p); 
@@ -87,16 +88,15 @@ uninfected=cell2mat(DD2fraction(4:307, 113:115));
 %  
 %  super_mat=cell2mat(Supp_species(4:292,2:55));
 %  [super_, super_NaN]=filter_std(super_mat,9, 6);
-%  [super_cont, super_cont_NaN]=filter_std(control, 9, 2) 
+%  [super_cont, super_cont_NaN]=filter_std(control, 9, 2); 
 
-%  [mol_super,mol_control, mol_uiRBC, plot_mat, mol_names]=Figure1_super( super_, control, super_names, species );
+  %[mol_super,mol_control, mol_uiRBC, plot_mat_super, plot_std_super, mol_names]=Figure1_super( super_, control, super_names, species );
  %[anova_super_mol, ttest_super_mol, statdatatS_mol]=anova_ttest_final(mol_super, mol_names, 6,9);
  %[ pvalue_s_c, pvalue_s_u] = ttest_within_species_super(mol_super, mol_control, mol_uiRBC, mol_names, 6); 
 
  
 %[anova_super, ttest_super, statdata_super]=anova_ttest_final(super_, super_names, 6, 9); 
-
-% [plot_super, bar_mat_super, percent_super, stats_super, names_S]=lipid_heatmap(super_,super_names,'super', species); 
+% [plot_super, bar_mat_super, stat_all_super, percent_super, stats_super, names_S]=lipid_heatmapv2(super_,super_names,'super', species); 
 %  cmap='jet';
 %  S=flipud(names_S); 
 %  H=HeatMap(S,'Colormap', cmap, 'Symmetric','false'); 
